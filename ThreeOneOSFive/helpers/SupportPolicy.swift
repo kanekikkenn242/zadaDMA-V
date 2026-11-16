@@ -2,28 +2,32 @@ import Foundation
 import UIKit
 
 enum ExploitSupportPolicy {
-    struct BuildInfo {
-        let build: String
-    }
-
     static let verifiedIOS17Range = "17.0 - 17.7"
     static let verifiedIOS18Range = "18.0 - 18.7.1"
     static let verifiedIOS26Range = "26.0 - 26.6.1"
-    
-    // Shtuam build-in tend te iOS 27.0.1 (24A446) ne liste
+
+    // Struct-i origjinal qe pritet nga OnboardingView dhe SettingsView
+    struct BuildInfo: Hashable {
+        let beta: Int
+        let publicBeta: Int?
+        let build: String
+    }
+
+    // Vargu origjinal i build-eve
     static let verifiedIOS27Builds: [BuildInfo] = [
-        BuildInfo(build: "24A5355q"),
-        BuildInfo(build: "24A5370h"),
-        BuildInfo(build: "24A5380h"),
-        BuildInfo(build: "24A5390f"),
-        BuildInfo(build: "24A446")
+        BuildInfo(beta: 1, publicBeta: nil, build: "24A5355q"),
+        BuildInfo(beta: 2, publicBeta: nil, build: "24A5370h"),
+        BuildInfo(beta: 3, publicBeta: 1,   build: "24A5380h"),
+        BuildInfo(beta: 4, publicBeta: 2,   build: "24A5390f")
     ]
 
+    // Funksioni origjinal qe pritet nga App.swift dhe KernelExploit.swift (me 3 argumente)
     static func isSupported(
-        systemVersion: String = UIDevice.current.systemVersion,
-        build: String = ProcessInfo.processInfo.operatingSystemVersionString
+        _ systemVersion: String,
+        _ build: String,
+        _ machine: String
     ) -> Bool {
-        // BYPASS: Lejojme te gjitha versionet e iOS 27
+        // BYPASS: Lejojme te gjitha versionet e iOS 27 (perfshire 27.0.1)
         if systemVersion.hasPrefix("27.") {
             return true
         }
