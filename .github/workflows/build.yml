@@ -15,14 +15,19 @@ jobs:
         with: 
           targets: aarch64-apple-ios
           
-      - name: Build Rust Airlift
+      - name: Download and Build Airlift (Rust)
         run: |
-          if [ -d "vendor/idevice" ]; then
-            cd vendor/idevice
-            cargo build --release --target aarch64-apple-ios
-          else
-            echo "Nuk ka vendor/idevice, vazhdojme."
-          fi
+          rm -rf vendor/idevice
+          git clone --depth 1 https://github.com/0xjohnnydev/idevice.git vendor/idevice
+          cd vendor/idevice
+          cargo build --release --target aarch64-apple-ios
+          cp target/aarch64-apple-ios/release/libidevice.a ../../ThreeOneOSFive/
+          
+      - name: Link Airlift to Xcode Project
+        run: |
+          # Shtojme -lidevice ne projektin e Xcode
+          sed -i '' 's/OTHER_LDFLAGS = (/OTHER_LDFLAGS = (\n\t\t\t\t"-lidevice",/' ThreeOneOSFive.xcodeproj/project.pbxproj
+          sed -i '' 's/LIBRARY_SEARCH_PATHS = (/LIBRARY_SEARCH_PATHS = (\n\t\t\t\t"$(SRCROOT)\/ThreeOneOSFive",/' ThreeOneOSFive.xcodeproj/project.pbxproj
           
       - name: Build Xcode Project
         run: |
@@ -34,7 +39,6 @@ jobs:
         run: |
           rm -rf pkg && mkdir -p pkg/Payload
           APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
-          echo "Gjetur: $APP_PATH"
           cp -R "$APP_PATH" pkg/Payload/
           (cd pkg && zip -ry ../zadaDMA-unsigned.ipa Payload)
           
