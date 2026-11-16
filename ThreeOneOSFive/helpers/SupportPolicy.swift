@@ -6,34 +6,28 @@ enum ExploitSupportPolicy {
     static let verifiedIOS18Range = "18.0 - 18.7.1"
     static let verifiedIOS26Range = "26.0 - 26.6.1"
 
-    // Struct-i origjinal qe pritet nga OnboardingView dhe SettingsView
-    struct BuildInfo: Hashable {
-        let beta: Int
-        let publicBeta: Int?
-        let build: String
-    }
-
-    // Vargu origjinal i build-eve
-    static let verifiedIOS27Builds: [BuildInfo] = [
-        BuildInfo(beta: 1, publicBeta: nil, build: "24A5355q"),
-        BuildInfo(beta: 2, publicBeta: nil, build: "24A5370h"),
-        BuildInfo(beta: 3, publicBeta: 1,   build: "24A5380h"),
-        BuildInfo(beta: 4, publicBeta: 2,   build: "24A5390f")
+    // Ky është tipi që pritet nga OnboardingView (tuple, jo struct!)
+    static let verifiedIOS27Builds: [(beta: Int, publicBeta: Int?, build: String)] = [
+        (beta: 1, publicBeta: nil, build: "24A5355q"),
+        (beta: 2, publicBeta: nil, build: "24A5370h"),
+        (beta: 3, publicBeta: 1,   build: "24A5380h"),
+        (beta: 4, publicBeta: 2,   build: "24A5390f")
     ]
 
-    // Funksioni origjinal qe pritet nga App.swift dhe KernelExploit.swift (me 3 argumente)
+    // KJO është signatura e saktë që e kërkojnë App.swift dhe KernelExploit.swift
     static func isSupported(
-        _ systemVersion: String,
-        _ build: String,
-        _ machine: String
+        major: Int,
+        minor: Int,
+        patch: Int,
+        build: String
     ) -> Bool {
         // BYPASS: Lejojme te gjitha versionet e iOS 27 (perfshire 27.0.1)
-        if systemVersion.hasPrefix("27.") {
+        if major == 27 {
             return true
         }
         
         // Lejojme versionet e tjera te njohura
-        if systemVersion.hasPrefix("17.") || systemVersion.hasPrefix("18.") || systemVersion.hasPrefix("26.") {
+        if major == 17 || major == 18 || major == 26 {
             return true
         }
         
