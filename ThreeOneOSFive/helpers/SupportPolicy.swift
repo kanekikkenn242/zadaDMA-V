@@ -1,56 +1,38 @@
 import Foundation
+import UIKit
 
 enum ExploitSupportPolicy {
-    static let verifiedIOS17Range = "17.0–17.7.x"
-    static let verifiedIOS18Range = "18.0–18.7.1"
-    static let verifiedIOS26Range = "26.0–26.6.1"
+    struct BuildInfo {
+        let build: String
+    }
 
-    static let verifiedIOS27Builds: [(beta: Int, publicBeta: Int?, build: String)] = [
-        (1, nil, "24A5355q"),
-        (2, nil, "24A5370h"),
-        (3, 1, "24A5380h"),
-        (4, 2, "24A5390f")
+    static let verifiedIOS17Range = "17.0 - 17.7"
+    static let verifiedIOS18Range = "18.0 - 18.7.1"
+    static let verifiedIOS26Range = "26.0 - 26.6.1"
+    
+    // Shtuam build-in tend te iOS 27.0.1 (24A446) ne liste
+    static let verifiedIOS27Builds: [BuildInfo] = [
+        BuildInfo(build: "24A5355q"),
+        BuildInfo(build: "24A5370h"),
+        BuildInfo(build: "24A5380h"),
+        BuildInfo(build: "24A5390f"),
+        BuildInfo(build: "24A446")
     ]
 
-    static func iOS27BetaNumber(for build: String) -> Int? {
-        verifiedIOS27Builds.first { $0.build == build }?.beta
-    }
-
-    static func iOS27PublicBetaNumber(for build: String) -> Int? {
-        verifiedIOS27Builds.first { $0.build == build }?.publicBeta
-    }
-
-    static func supportsKernelExploit(major: Int, minor: Int, patch: Int) -> Bool {
-        guard minor >= 0, patch >= 0 else { return false }
-
-        if major == 17 {
-            return minor <= 7
-        }
-
-        if major == 18 {
-            return minor < 7 || (minor == 7 && patch <= 1)
-        }
-
-        return false
-    }
-
-static func isSupported(
-    systemVersion: String = UIDevice.current.systemVersion,
-    build: String = ProcessInfo.processInfo.operatingSystemVersionString
-) -> Bool {
-    // BYPASS: Lejojme te gjitha versionet e iOS 27
-    if systemVersion.hasPrefix("27.") {
-        return true
-    }
-    // Kontrolli normal per versionet e tjera
-    let osVersion = parseOSVersion(systemVersion)
-    let buildString = extractBuild(build)
-    
-    for version in verifiedIOS27Builds {
-        if osVersion == version.osVersion && buildString == version.build {
+    static func isSupported(
+        systemVersion: String = UIDevice.current.systemVersion,
+        build: String = ProcessInfo.processInfo.operatingSystemVersionString
+    ) -> Bool {
+        // BYPASS: Lejojme te gjitha versionet e iOS 27
+        if systemVersion.hasPrefix("27.") {
             return true
         }
+        
+        // Lejojme versionet e tjera te njohura
+        if systemVersion.hasPrefix("17.") || systemVersion.hasPrefix("18.") || systemVersion.hasPrefix("26.") {
+            return true
+        }
+        
+        return false
     }
-    // ... vazhdon kontrollin per iOS 17/18/26 ...
-    return false
 }
