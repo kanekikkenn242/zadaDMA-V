@@ -161,9 +161,7 @@ struct SettingsView: View {
             ?? "1.0"
     }
 
-    private func versionLabel(
-        _ version: (beta: Int, publicBeta: Int?, build: String)
-    ) -> String {
+    private func versionLabel(_ version: ExploitSupportPolicy.BuildInfo) -> String {
         if let publicBeta = version.publicBeta {
             return language.text(
                 "settings.developer_public_beta_build",
