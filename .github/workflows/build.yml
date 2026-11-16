@@ -1,0 +1,53 @@
+name: build-ipa
+on:
+  push: { branches: [ main ] }
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with: 
+          targets: aarch64-apple-ios
+          
+      - name: Build Rust Airlift
+        run: |
+          if [ -d "vendor/idevice" ]; then
+            cd vendor/idevice
+            cargo build --release --target aarch64-apple-ios
+          else
+            echo "Nuk ka vendor/idevice, vazhdojme."
+          fi
+          
+      - name: Build Xcode Project
+        run: |
+          echo "=== Duke listuar skemat ==="
+          xcodebuild -list -project zadaDMA.xcodeproj
+          
+          echo "=== Duke ndertuar ==="
+          # Provojme skemen origjinale (që mbeti brenda projektit)
+          xcodebuild -project zadaDMA.xcodeproj -scheme ThreeOneOSFive -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build || \
+          # Nese deshton, provojme skemen e re
+          xcodebuild -project zadaDMA.xcodeproj -scheme zadaDMA -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+            
+      - name: Package IPA
+        run: |
+          rm -rf pkg && mkdir -p pkg/Payload
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
+          echo "Gjetur: $APP_PATH"
+          cp -R "$APP_PATH" pkg/Payload/
+          (cd pkg && zip -ry ../zadaDMA-unsigned.ipa Payload)
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zadaDMA-ipa
+          path: zadaDMA-unsigned.ipa
